@@ -20,21 +20,25 @@ def bottom_up_algorithm(action_table, goto_table, input):
     ]
 
     run = True
-    while run == True:
+    while run:
         aux_cont += 1
 
         if aux_cont > 1000:
+            # Limite para evitar loop infinito
             break
-        # Label do passo a passo
+
+        # Preparar as listas para logs detalhados
         step_by_step = []
         step_by_step_detailed = []
 
         action = ["", ""]
         transition = ["", ""]
 
-        action[0] = int(stack[len(stack) - 1]) + 1
+        # Aqui está a correção: usar o estado da pilha sem somar +1
+        action[0] = int(stack[-1])  # estado atual da pilha
         action[1] = input_tape[pointer]
-        if not action[1] in action_table:
+
+        if action[1] not in action_table:
             step_by_step.append(f"A entrada foi rejeitada devido a um erro léxico!")
             step_by_step_detailed.append(
                 [
@@ -53,17 +57,17 @@ def bottom_up_algorithm(action_table, goto_table, input):
                 }
             )
             break
+
         action_movement = action_table[action[1]][action[0]].split("[")
         action_movement[0] = action_movement[0].strip()
         if action_movement[0] != "ACEITO" and action_movement[0] != "ERRO!":
-            action_movement[1] = action_movement[1].strip("]")
-            action_movement[1] = action_movement[1].strip()
+            action_movement[1] = action_movement[1].strip("]").strip()
 
-        step_by_step.append(f"AÇÃO[{action[1]}, {action[0] - 1}] => {action_movement}")
+        step_by_step.append(f"AÇÃO[{action[1]}, {action[0]}] => {action_movement}")
         step_by_step_detailed.append(
             [
                 "Realizada uma busca na tabela de ações.",
-                f"Na coluna >>{action[1]}<< e linha >>{action[0] - 1}<< encontrado movimento: {action_movement}",
+                f"Na coluna >>{action[1]}<< e linha >>{action[0]}<< encontrado movimento: {action_movement}",
             ]
         )
         detailed_steps.append(
@@ -73,19 +77,18 @@ def bottom_up_algorithm(action_table, goto_table, input):
                 "stack": stack[::-1].copy(),
                 "input": input_tape.copy(),
                 "pointer": pointer,
-                "stepMarker": [f"{action[1]}", action[0] - 1],
+                "stepMarker": [f"{action[1]}", action[0]],
             }
         )
 
-        if action_movement[0][:8] == "REDUZIR":
+        if action_movement[0] == "REDUZIR":
             array_action_movement = action_movement[1].split(" ")
 
             # Movimento de desempilhar
-            # Elementos ao lado esquerdo da produção
             reduce_elements = array_action_movement[2:]
             qt_unstack = 2 * len(reduce_elements)
 
-            for i in range(qt_unstack):
+            for _ in range(qt_unstack):
                 stack.pop()
 
             step_by_step.append(f"Desempilhar {qt_unstack} elementos")
@@ -107,17 +110,17 @@ def bottom_up_algorithm(action_table, goto_table, input):
                 }
             )
 
-            transition[0] = int(stack[len(stack) - 1]) + 1
+            transition[0] = int(stack[-1])
             transition[1] = array_action_movement[0]
             goto_movement = goto_table[transition[1]][transition[0]]
 
             step_by_step.append(
-                f"TRANSIÇÃO[{transition[1]}, {transition[0] - 1}] => {goto_movement}"
+                f"TRANSIÇÃO[{transition[1]}, {transition[0]}] => {goto_movement}"
             )
             step_by_step_detailed.append(
                 [
                     "O segundo passo do movimento de reduzir é consultar a tabela de transições.",
-                    f"Na coluna >>{transition[1]}<< e linha >>{transition[0] - 1}<< encontrado movimento: {goto_movement}",
+                    f"Na coluna >>{transition[1]}<< e linha >>{transition[0]}<< encontrado movimento: {goto_movement}",
                 ]
             )
             detailed_steps.append(
@@ -127,7 +130,7 @@ def bottom_up_algorithm(action_table, goto_table, input):
                     "stack": stack[::-1].copy(),
                     "input": input_tape.copy(),
                     "pointer": pointer,
-                    "stepMarker": [f"{transition[1]}", transition[0] - 1],
+                    "stepMarker": [f"{transition[1]}", transition[0]],
                 }
             )
 
@@ -143,7 +146,7 @@ def bottom_up_algorithm(action_table, goto_table, input):
                 [
                     "O terceiro passo do movimento de reduzir é empilhar.",
                     "São colocados na pilha o símbolo do lado esquerdo da produção e o estado encontrado na tabela de transições.",
-                    f"No caso é empilhado o símbolo ➜{array_action_movement[0]} e o estado ➜{str(int(goto_movement[10]))}.",
+                    f"No caso é empilhado o símbolo ➜{array_action_movement[0]} e o estado ➜{stackUp}.",
                 ]
             )
             detailed_steps.append(
@@ -156,7 +159,8 @@ def bottom_up_algorithm(action_table, goto_table, input):
                     "stepMarker": ["", ""],
                 }
             )
-        elif action_movement[0][:8] == "EMPILHAR":
+
+        elif action_movement[0] == "EMPILHAR":
             stack.append(action[1])
             stack.append(action_movement[1])
 
@@ -181,8 +185,8 @@ def bottom_up_algorithm(action_table, goto_table, input):
             )
 
             pointer += 1
+
         elif action_movement[0] == "ACEITO":
-            print("parse alg 6")
             step_by_step.append(f"A entrada foi aceita!")
             step_by_step_detailed.append([f"Aceito"])
             detailed_steps.append(
@@ -196,12 +200,11 @@ def bottom_up_algorithm(action_table, goto_table, input):
                 }
             )
             break
+
         elif action_movement[0] == "ERRO!":
-            print("parse alg 7")
-            current_state = action[0] - 1
+            current_state = action[0]
             current_symbol = action[1]
 
-            # Lista de símbolos esperados no estado atual
             expected_symbols = [
                 symb for symb in action_table.keys()
                 if action_table[symb][action[0]] != "ERRO!"
@@ -224,7 +227,9 @@ def bottom_up_algorithm(action_table, goto_table, input):
                 }
             )
             break
+
         else:
-            print("parse alg 7")
+            # Caso inesperado
             return {"Erro": "Houve um erro!"}
+
     return detailed_steps
