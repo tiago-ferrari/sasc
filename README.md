@@ -5,6 +5,7 @@
 - Documento do projeto:  [TCC-Simulador-Analise-Sintatica.pdf](https://github.com/user-attachments/files/17387550/TCC2_Rogerio_Crestani-.Corrigido-Versao.2.pdf)
 
 Acesse o simulador por esse link: https://sasc.netlify.app/
+ACESSE O SIMULADOR ALTERADO https://68596000d86235d6d560f107--sasc-alterado3.netlify.app/
 
 # Este repositório foi feito usando o projeto de Simulador de Analise Sintatica de Rogério Crestani como base.
 
